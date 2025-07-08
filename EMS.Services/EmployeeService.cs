@@ -18,62 +18,71 @@ namespace EMS.Services
             this.mapper = mapper;
         }
 
-        public async Task<EmployeeDto> CreateEmployeeAsync(EmployeeCreateDto employeeDto)
+        public async Task<ResultDto<EmployeeDto>> CreateEmployeeAsync(EmployeeCreateDto employeeDto)
         {
             var employee = mapper.Map<Employee>(employeeDto);
-            await unitOfWork.Employees.AddAsync(employee);
-            if (await unitOfWork.SaveChangesAsync() > 0)
-            {
-                return mapper.Map<EmployeeDto>(employee);
+
+            if(await unitOfWork.Departments.ExistsAsync(e => e.Id == employeeDto.DepartmentId))
+            { 
+                await unitOfWork.Employees.AddAsync(employee);
+                if (await unitOfWork.SaveChangesAsync() > 0)
+                {
+                    return ResultDto<EmployeeDto>.Ok(mapper.Map<EmployeeDto>(employee), "Employee created successfully.");
+                }
+                return ResultDto<EmployeeDto>.Fail("Failed to create a new employee");
             }
-            return new EmployeeDto();
+            return ResultDto<EmployeeDto>.Fail("Invalid department id");
         }
 
-        public async Task<bool> DeleteEmployeeAsync(int id)
+        public async Task<ResultDto<EmployeeDto>> DeleteEmployeeAsync(int id)
         {
             var employee = await unitOfWork.Employees.GetByIdAsync(id);
             if(employee != null)
             {
                 unitOfWork.Employees.Delete(employee);
-                return await unitOfWork.SaveChangesAsync() > 0;
+                if(await unitOfWork.SaveChangesAsync() > 0)
+                   return ResultDto<EmployeeDto>.Ok(mapper.Map<EmployeeDto>(employee), "Employee deleted successfully");
+                return ResultDto<EmployeeDto>.Fail("Failed to delete the employee");
             }
-            return false;
+            return ResultDto<EmployeeDto>.Fail("Invalid employee id");
         }
 
-        public async Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync()
+        public async Task<IEnumerable<BaseEmployeeDto>> GetAllEmployeesAsync()
         {
-            var employees = await unitOfWork.Employees.GetAllAsync();
-            return mapper.Map<IEnumerable<EmployeeDto>>(employees);
+            var employees = await unitOfWork.Employees.GetAllAsync(e => e.Department);
+            return mapper.Map<IEnumerable<BaseEmployeeDto>>(employees);
         }
 
-        public async Task<EmployeeDto> GetEmployeeByIdAsync(int id)
+        public async Task<ResultDto<BaseEmployeeDto>> GetEmployeeByIdAsync(int id)
         {
-            var employee = await unitOfWork.Employees.GetByIdAsync(id);
+            var employee = await unitOfWork.Employees.GetByIdAsync(id, e => e.Department);
             if (employee != null)
-            {
-                return mapper.Map<EmployeeDto>(employee);
-            }
-            return new EmployeeDto();
+                return ResultDto<BaseEmployeeDto>.Ok(mapper.Map<BaseEmployeeDto>(employee));
+            return ResultDto<BaseEmployeeDto>.Fail("Invalid employee id");
         }
 
-        public async Task<EmployeeDto> UpdateEmployeeAsync(EmployeeUpdateDto employeeDto)
+        public async Task<ResultDto<EmployeeDto>> UpdateEmployeeAsync(EmployeeUpdateDto employeeDto)
         {
             var employee = mapper.Map<Employee>(employeeDto);
-            unitOfWork.Employees.Update(employee);
-            if (await unitOfWork.SaveChangesAsync() > 0)
+
+            if(await unitOfWork.Employees.ExistsAsync(e => e.Id == employeeDto.Id)
+                && await unitOfWork.Departments.ExistsAsync(e => e.Id == employeeDto.DepartmentId))
             {
-                return mapper.Map<EmployeeDto>(employee);
+                unitOfWork.Employees.Update(employee);
+                if (await unitOfWork.SaveChangesAsync() > 0)
+                    return ResultDto<EmployeeDto>.Ok(mapper.Map<EmployeeDto>(employee), "Employee updated successfully");
+                return ResultDto<EmployeeDto>.Fail("Failed to update the employee");
             }
-            return new EmployeeDto();
+            return ResultDto<EmployeeDto>.Fail("Invalid employee or department id");
         }
 
-        public async Task<PagedResult<EmployeeDto>> GetEmployeesAsync(EmployeeFilterDto filter)
+        public async Task<PagedResult<BaseEmployeeDto>> GetEmployeesAsync(EmployeeFilterDto filter)
         {
             var result = await unitOfWork.Employees.GetFilteredEmployeesAsync(filter);
 
-            return new PagedResult<EmployeeDto>
+            return new PagedResult<BaseEmployeeDto>
             {
-                Items = mapper.Map<IEnumerable<EmployeeDto>>(result.Items),
+                Items = mapper.Map<IEnumerable<BaseEmployeeDto>>(result.Items),
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize

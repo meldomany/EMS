@@ -5,11 +5,11 @@ namespace EMS.Services.IServices
 {
     public interface IEmployeeService
     {
-        Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync();
-        Task<EmployeeDto> GetEmployeeByIdAsync(int id);
-        Task<EmployeeDto> CreateEmployeeAsync(EmployeeCreateDto employee);
-        Task<EmployeeDto> UpdateEmployeeAsync(EmployeeUpdateDto employee);
-        Task<bool> DeleteEmployeeAsync(int id);
-        Task<PagedResult<EmployeeDto>> GetEmployeesAsync(EmployeeFilterDto filter);
+        Task<IEnumerable<BaseEmployeeDto>> GetAllEmployeesAsync();
+        Task<ResultDto<BaseEmployeeDto>> GetEmployeeByIdAsync(int id);
+        Task<ResultDto<EmployeeDto>> CreateEmployeeAsync(EmployeeCreateDto employee);
+        Task<ResultDto<EmployeeDto>> UpdateEmployeeAsync(EmployeeUpdateDto employee);
+        Task<ResultDto<EmployeeDto>> DeleteEmployeeAsync(int id);
+        Task<PagedResult<BaseEmployeeDto>> GetEmployeesAsync(EmployeeFilterDto filter);
     }
 }

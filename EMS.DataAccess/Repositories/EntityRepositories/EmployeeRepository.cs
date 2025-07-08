@@ -18,7 +18,7 @@ namespace EMS.DataAccess.Repositories.EntityRepositories
 
         public async Task<PagedResult<Employee>> GetFilteredEmployeesAsync(EmployeeFilterDto filter)
         {
-            var query = _context.Employees.AsQueryable();
+            var query = _context.Employees.Include(e => e.Department).AsQueryable();
 
             if (!string.IsNullOrEmpty(filter.Name))
                 query = query.Where(e => e.Name.Contains(filter.Name));

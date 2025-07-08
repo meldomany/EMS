@@ -29,10 +29,8 @@ namespace EMS.Controllers
         public async Task<IActionResult> GetEmployeeById(int id)
         {
             var employee = await employeeService.GetEmployeeByIdAsync(id);
-            if (employee == null)
-            {
-                return NotFound($"Employee with ID {id} not found.");
-            }
+            if (!employee.Success)
+                return BadRequest(employee);
             return Ok(employee);
         }
 
@@ -47,8 +45,11 @@ namespace EMS.Controllers
             {
                 return BadRequest("Employee data is null.");
             }
+
             var createdEmployee = await employeeService.CreateEmployeeAsync(employee);
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.Id }, createdEmployee);
+            if(createdEmployee.Success)
+                return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.Data.Id }, createdEmployee);
+            return BadRequest(createdEmployee);
         }
 
         [HttpPut]
@@ -63,10 +64,8 @@ namespace EMS.Controllers
                 return BadRequest("Employee data is invalid.");
             }
             var updatedEmployee = await employeeService.UpdateEmployeeAsync(employee);
-            if (updatedEmployee == null)
-            {
-                return NotFound($"Employee with ID {id} not found.");
-            }
+            if (!updatedEmployee.Success)
+                return BadRequest(updatedEmployee);
             return Ok(updatedEmployee);
         }
 
@@ -75,9 +74,9 @@ namespace EMS.Controllers
         public async Task<IActionResult> DeleteEmployee(int id)
         {
             var result = await employeeService.DeleteEmployeeAsync(id);
-            if (!result)
+            if (!result.Success)
             {
-                return NotFound($"Employee with ID {id} not found.");
+                return BadRequest(result);
             }
             return NoContent();
         }

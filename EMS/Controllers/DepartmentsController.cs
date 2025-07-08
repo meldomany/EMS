@@ -29,10 +29,8 @@ namespace EMS.Controllers
         public async Task<IActionResult> GetDepartmentById(int id)
         {
             var department = await departmentService.GetDepartmentByIdAsync(id);
-            if (department == null)
-            {
-                return NotFound($"Department with ID {id} not found.");
-            }
+            if (!department.Success)
+                return BadRequest(department);
             return Ok(department);
         }
 
@@ -47,8 +45,12 @@ namespace EMS.Controllers
             {
                 return BadRequest("Department data is null.");
             }
+
             var createdDepartment = await departmentService.CreateDepartmentAsync(department);
-            return CreatedAtAction(nameof(GetDepartmentById), new { id = createdDepartment.Id }, createdDepartment);
+
+            if(createdDepartment.Success)
+                return CreatedAtAction(nameof(GetDepartmentById), new { id = createdDepartment.Data.Id }, createdDepartment);
+            return BadRequest(createdDepartment);
         }
 
         [HttpPut]
@@ -63,10 +65,8 @@ namespace EMS.Controllers
                 return BadRequest("Department data is invalid.");
             }
             var updatedDepartment = await departmentService.UpdateDepartmentAsync(department);
-            if (updatedDepartment == null)
-            {
-                return NotFound($"Department with ID {id} not found.");
-            }
+            if (!updatedDepartment.Success)
+                return BadRequest(updatedDepartment);
             return Ok(updatedDepartment);
         }
 
@@ -75,11 +75,9 @@ namespace EMS.Controllers
         public async Task<IActionResult> DeleteDepartment(int id)
         {
             var result = await departmentService.DeleteDepartmentAsync(id);
-            if (!result)
-            {
-                return NotFound($"Department with ID {id} not found.");
-            }
-            return NoContent(); // 204 No Content
+            if (!result.Success)
+                return BadRequest(result);
+            return NoContent();
         }
     }
 }

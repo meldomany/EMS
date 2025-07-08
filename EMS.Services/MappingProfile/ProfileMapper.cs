@@ -10,13 +10,17 @@ namespace EMS.Services.MappingProfile
     {
         public ProfileMapper()
         {
+            CreateMap<Department, BaseDepartmentDto>().ReverseMap();
             CreateMap<Department, DepartmentDto>().ReverseMap();
             CreateMap<Department, DepartmentCreateDto>().ReverseMap();
             CreateMap<Department, DepartmentUpdateDto>().ReverseMap();
             
+            CreateMap<Employee, BaseEmployeeDto>().ReverseMap();
             CreateMap<Employee, EmployeeDto>().ReverseMap();
             CreateMap<Employee, EmployeeCreateDto>().ReverseMap();
+            CreateMap<EmployeeDto, EmployeeCreateDto>().ReverseMap();
             CreateMap<Employee, EmployeeUpdateDto>().ReverseMap();
+            CreateMap<EmployeeDto, EmployeeUpdateDto>().ReverseMap();
 
             CreateMap<LogHistory, LogHistoryDto>().ReverseMap();
         }
